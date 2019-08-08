@@ -1,67 +1,57 @@
 <template>
     <el-row type="flex" justify="center">
         <el-col :span="12">
-            <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                <el-form-item label="头像" prop="avatar">
-                    <el-upload
-                      class="avatar-uploader"
-                      action="https://jsonplaceholder.typicode.com/posts/"
-                      :show-file-list="false"
-                      :on-success="handleAvatarSuccess"
-                      :before-upload="beforeAvatarUpload">
-                      <img v-if="ruleForm.imageUrl" :src="ruleForm.imageUrl" class="avatar">
-                      <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                    </el-upload>
+            <el-form :model="user" status-icon :rules="rules" ref="user" label-width="100px" class="demo-user">
+                <el-form-item label="头像" prop="usrAvatar">
+                  <el-upload
+                    class="avatar-uploader"
+                    action="api/stu/fileUpload"
+                    ref="upload"
+                    :show-file-list="false"
+                    :on-success="handleAvatarSuccess"
+                    :on-error="handleAvatarError"
+                    :before-upload="beforeAvatarUpload"
+                    :auto-upload="false"
+                    :on-change="handleAvatarChange"
+                  >
+                    <el-avatar v-if="imageUrl"  shape="square" :fit="cover" :src="imageUrl"  class="avatar"></el-avatar>
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                  </el-upload>
                 </el-form-item>
-                <el-form-item label="用户名" prop="uname">
-                    <el-input v-model="ruleForm.uname"></el-input>
+                <el-form-item label="用户名" prop="usrName">
+                    <el-input v-model="user.usrName"></el-input>
                 </el-form-item>
-                <el-form-item label="密码" prop="pwd1">
-                    <el-input placeholder="请输入密码" v-model="ruleForm.pwd1" show-password autocomplete="off"></el-input>
+                <el-form-item label="密码" prop="usrPwd">
+                    <el-input placeholder="请输入密码" v-model="user.usrPwd" show-password autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="确认密码" prop="pwd2">
-                    <el-input placeholder="请再次输入密码" v-model="ruleForm.pwd2" show-password autocomplete="off"></el-input>
+                <el-form-item label="确认密码" prop="usrPwd2">
+                    <el-input placeholder="请再次输入密码" v-model="user.usrPwd2" show-password autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="生日" required>
-                    <el-form-item prop="birthday">
-                        <el-date-picker type="date" placeholder="选择日期" v-model="ruleForm.birthday" style="width: 100%;"></el-date-picker>
-                    </el-form-item>
+                <el-form-item label="真实姓名" prop="usrRealname">
+                    <el-input v-model="user.usrRealname"></el-input>
                 </el-form-item>
-                <el-form-item label="性别" prop="sex">
-                    <el-radio-group v-model="ruleForm.sex">
-                        <el-radio label="男" value="1"></el-radio>
-                        <el-radio label="女" value="2"></el-radio>
-                    </el-radio-group>
-                </el-form-item>
-                <el-form-item label="个人简介" prop="desc">
-                    <el-input type="textarea" v-model="ruleForm.desc"></el-input>
-                </el-form-item>
-                <el-form-item label="密保问题" prop="question">
-                    <el-select v-model="ruleForm.question" placeholder="请选择密保问题">
-                        <el-option label="你的爱人的名字?" value="1"></el-option>
-                        <el-option label="你的儿时玩伴的名字?" value="2"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="密保答案" prop="answer">
-                    <el-input v-model="ruleForm.answer"></el-input>
+                <el-form-item label="手机号" prop="usrTel">
+                    <el-input placeholder="请输入手机号" v-model="user.usrTel" show-password autocomplete="off"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="submitForm('ruleForm')">立即注册</el-button>
-                    <el-button @click="resetForm('ruleForm')">清空</el-button>
+                    <el-button type="primary" @click="submitForm('user')">立即注册</el-button>
+                    <el-button @click="resetForm('user')">清空</el-button>
                 </el-form-item>
             </el-form>
         </el-col>
     </el-row>
 </template>
 <script>
+import axios from "axios";
+
 export default {
     data() {
         var validatePass = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('请输入密码'));
         } else {
-          if (this.ruleForm.pwd2 !== '') {
-            this.$refs.ruleForm.validateField('checkPass');
+          if (this.user.usrPwd !== '') {
+            this.$refs.user.validateField('checkPass');
           }
           callback();
         }
@@ -69,92 +59,141 @@ export default {
       var validatePass2 = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('请再次输入密码'));
-        } else if (value !== this.ruleForm.pwd1) {
+        } else if (value !== this.user.usrPwd) {
           callback(new Error('两次输入密码不一致!'));
         } else {
           callback();
         }
       };
       return {
-        ruleForm: {
-          imageUrl: '',
-          uname: '',
-          pwd1:'',
-          pwd2:'',
-          birthday: '',
-          sex: '',
-          desc: '',
-          question:'',
-          answer:''
+        imageUrl: '',
+        user: {
+          usrName: '',
+          usrPwd:'',
+          usrPwd2:'',
+          usrRealname: '',
+          usrTel: '',
+          usrAvatar:''
         },
         rules: {
-          uname: [
+          usrName: [
             { required: true, message: '请输入用户名', trigger: 'blur' },
-            { min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur' }
+            { min: 3, max: 8, message: '长度在 3 到 16 个字符', trigger: 'blur' }
           ],
-          pwd1: [
+          usrPwd: [
             { required: true, message: '请输入用户密码', trigger: 'blur' },
             { min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur' },
             { validator: validatePass}
           ],
-          pwd2: [
+          usrPwd2: [
             { required: true, message: '请再次输入用户密码', trigger: 'blur' },
             { min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur' },
             { validator: validatePass2}
           ],
-          birthday: [
-            { type: 'date', required: true, message: '请选择日期', trigger: 'change' }
+          usrRealname: [
+            { required: true, message: '请输入真实姓名', trigger: 'blur' },
+            { min: 3, max: 8, message: '长度在 3 到 16 个字符', trigger: 'blur' }
           ],
-          sex: [
-            { required: true, message: '请选择性别', trigger: 'change' }
-          ],
-          desc: [
-            { required: true, message: '请填写个人简介', trigger: 'blur' }
-          ],
-          question: [
-            { required: true, message: '请选择密保问题', trigger: 'change' }
-          ],
-          answer: [
-            { required: true, message: '请填写密保问题答案', trigger: 'blur' }
+          usrTel:[
+            { required: true, message: '请输入手机号', trigger: 'blur' },
+            { min: 6, max: 11, message: '长度在 3 到 20 个字符', trigger: 'blur' },
+            // { type: 'number', message: '手机号必须为数字值'}
           ]
         }
       };
     },
     methods: {
       submitForm(formName) {
-        this.$refs[formName].validate((valid) => {
-          if (valid) {
-            alert('submit!');
-          } else {
-            console.log('error submit!!');
-            return false;
-          }
-        });
-      },
-      resetForm(formName) {
-        this.$refs[formName].resetFields();
-      },
-      handleAvatarSuccess(res, file) {
-        alert(this.ruleForm.imageUrl)
-        this.ruleForm.imageUrl = URL.createObjectURL(file.raw);
-        alert(this.ruleForm.imageUrl);
-      },
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          var _this = this;
+          //console.log(_this.user);
+          var file = this.$refs.upload._data.uploadFiles[0]
+          console.log(this.user);
+          axios({
+            method: "post",
+            url: "/api/user/register",
+            data: {
+              user:this.user,
+              file:file
+            },
+            // params:{
+            //   file:file
+            // }
+          })
+          .then(res => {
+            console.log(res.data);
+            _this.tableData = res.data;
+            if(res.data.code=="0"){
+                _this.$message({
+                showClose: true,
+                message: res.data.msg,
+                type: "success"
+              });
+              _this.$router.push('/');
+            }else{
+              _this.$message({
+                showClose: true,
+                message: res.data.msg,
+                type: "success"
+              });
+            }
+            
+          })
+          .catch(function(error) {
+            if (error.response) {
+              console.log(error.response.data);
+              console.log(error.response.status);
+              console.log(error.response.headers);
+            } else if (error.request) {
+              console.log(error.request);
+            } else {
+              console.log("Error", error.message);
+            }
+            console.log(error.config);
 
-      beforeAvatarUpload(file) {
-        const isJPG = file.type === 'image/jpeg';
-        const isLt2M = file.size / 1024 / 1024 < 2;
+            _this.$message({
+              showClose: true,
+              message: "注册失败",
+              type: "error"
+            });
+          });
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+    },
+    handleAvatarSuccess(res) {
+      var _this = this;
+      _this.user.usrAvatar = res;
+      console.log(res);
 
-        if (!isJPG) {
-          this.$message.error('上传头像图片只能是 JPG 格式!');
-        }
-        if (!isLt2M) {
-          this.$message.error('上传头像图片大小不能超过 2MB!');
-        }
-          this.$message.error('OK!');
-        return isJPG && isLt2M;
+    },
+    handleAvatarError(error) {
+      console.log(error);
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === ('image/jpeg'||'image/png');
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 或 PNG 格式!');
       }
-    
-    }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+      return isJPG && isLt2M;
+    },
+    handleAvatarChange(file){
+      var _this = this;
+      _this.imageUrl = URL.createObjectURL(file.raw);
+      console.log(_this.imageUrl);
+    },
+  }
 }
 </script>
 

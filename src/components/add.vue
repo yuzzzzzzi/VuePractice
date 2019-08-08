@@ -12,12 +12,17 @@
         <el-form-item label="头像" prop="avatar">
           <el-upload
             class="avatar-uploader"
-            action="https://jsonplaceholder.typicode.com/posts/"
+            action="api/stu/fileUpload"
+            ref="upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
+            :on-error="handleAvatarError"
             :before-upload="beforeAvatarUpload"
+            :auto-upload="false"
+            :on-change="handleAvatarChange"
           >
-            <img v-if="ruleForm.imageUrl" :src="ruleForm.imageUrl" class="avatar" />
+            <!-- <div v-if="imageUrl"  :style="{backgroundImage: 'url(' + imageUrl + ')'}" class="avatar bgimg" ></div> -->
+            <el-avatar v-if="imageUrl"  shape="square" :fit="cover" :src="imageUrl"  class="avatar"></el-avatar>
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -58,12 +63,14 @@ import axios from "axios";
 export default {
   data() {
     return {
+      imageUrl: "",
       ruleForm: {
-        imageUrl: "",
         stuNum: "",
         stuName: "",
         stuBirthday: "",
-        stuSex: ""
+        stuSex: "",
+        stuAvatar:"",
+        stuUrl:""
       },
       rules: {
         stuName: [
@@ -90,39 +97,41 @@ export default {
       this.$refs[formName].validate(valid => {
         if (valid) {
           var _this = this;
-          console.log(_this.ruleForm);
+          //console.log(_this.ruleForm);
+          this.$refs.upload.submit();
+          console.log(this.ruleForm);
           axios({
             method: "post",
             url: "api/stu/insert",
             data: _this.ruleForm
           })
-            .then(res => {
-              console.log(res.data);
-              _this.tableData = res.data;
-              _this.$message({
-                showClose: true,
-                message: "添加成功",
-                type: "success"
-              });
-            })
-            .catch(function(error) {
-              if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-              } else if (error.request) {
-                console.log(error.request);
-              } else {
-                console.log("Error", error.message);
-              }
-              console.log(error.config);
-
-              _this.$message({
-                showClose: true,
-                message: "添加失败",
-                type: "error"
-              });
+          .then(res => {
+            console.log(res.data);
+            _this.tableData = res.data;
+            _this.$message({
+              showClose: true,
+              message: "添加成功",
+              type: "success"
             });
+          })
+          .catch(function(error) {
+            if (error.response) {
+              console.log(error.response.data);
+              console.log(error.response.status);
+              console.log(error.response.headers);
+            } else if (error.request) {
+              console.log(error.request);
+            } else {
+              console.log("Error", error.message);
+            }
+            console.log(error.config);
+
+            _this.$message({
+              showClose: true,
+              message: "添加失败",
+              type: "error"
+            });
+          });
         } else {
           console.log("error submit!!");
           return false;
@@ -132,28 +141,41 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
     },
-    handleAvatarSuccess(res, file) {
-      alert(this.ruleForm.imageUrl);
-      this.ruleForm.imageUrl = URL.createObjectURL(file.raw);
-      alert(this.ruleForm.imageUrl);
-    },
+    handleAvatarSuccess(res) {
+      var _this = this;
+      _this.ruleForm.stuUrl = res;
+      console.log(res);
 
+    },
+    handleAvatarError(error) {
+      console.log(error);
+    },
     beforeAvatarUpload(file) {
-      const isJPG = file.type === "image/jpeg";
+      const isJPG = file.type === ('image/jpeg'||'image/png');
       const isLt2M = file.size / 1024 / 1024 < 2;
 
       if (!isJPG) {
-        this.$message.error("上传头像图片只能是 JPG 格式!");
+        this.$message.error('上传头像图片只能是 JPG 或 PNG 格式!');
       }
       if (!isLt2M) {
-        this.$message.error("上传头像图片大小不能超过 2MB!");
+        this.$message.error('上传头像图片大小不能超过 2MB!');
       }
-      this.$message.error("OK!");
       return isJPG && isLt2M;
-    }
+    },
+    handleAvatarChange(file){
+      var _this = this;
+      _this.imageUrl = URL.createObjectURL(file.raw);
+      console.log(_this.imageUrl);
+    },
   }
+  
 };
 </script>
 
 <style>
+.bgimg{
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
 </style>

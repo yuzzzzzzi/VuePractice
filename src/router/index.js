@@ -53,7 +53,7 @@ export const routerMap = [
         hidden:true
     },
     { 
-        path: '/user', 
+        path: '/user/:id', 
         name:'user',
         components: require('../views/user.vue'),
         meta: {
@@ -66,6 +66,16 @@ export const routerMap = [
         path: '/users', 
         name:'users',
         components: require('../views/users.vue'),
+        meta: {
+            title:"个人信息",
+            keepAlive:true
+        },
+        hidden:true
+    },
+    { 
+        path: '/reg', 
+        name:'reg',
+        components: require('../views/reg.vue'),
         meta: {
             title:"个人信息",
             keepAlive:true

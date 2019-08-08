@@ -3,12 +3,12 @@
         <el-col :span="12">
             <div>
                 <div class="txtInput">
-                    <el-input placeholder="请输入账号" v-model="uname">
+                    <el-input placeholder="请输入账号" v-model="usrName">
                         <template slot="prepend">账号：</template>
                     </el-input>
                 </div>
                 <div class="txtInput">
-                    <el-input placeholder="请输入密码" v-model="pwd" show-password>
+                    <el-input placeholder="请输入密码" v-model="usrPwd" show-password>
                         <template slot="prepend">密码：</template>
                     </el-input>
                 </div>
@@ -23,14 +23,14 @@ import axios from 'axios';
 export default {
     data() {
         return {
-            uname: '',
-            pwd: ''
+            usrName: '',
+            usrPwd: ''
         }
     },
     methods: {
         btnLogin() {
             var _this = this;
-            if (_this.uname == '') {
+            if (_this.usrName == '') {
                 _this.$message({
                     showClose: true,
                     message: '请输入用户名',
@@ -39,7 +39,7 @@ export default {
       
             }
             else{
-                if(_this.pwd==""){
+                if(_this.usrPwd==""){
                     _this.$message({
                         showClose: true,
                         message: '密码不能为空',
@@ -48,52 +48,37 @@ export default {
             
                 }
             }
-            console.log(_this.uname+_this.pwd)
             // 发送 POST 请求
             axios({
                 method: 'post',
-                url: 'http://localhost:4000/login',
+                url: '/api/user/login',
                 params: {
-                    'uname': _this.uname,
-                    'pwd': _this.pwd
+                    'usrName': _this.usrName,
+                    'usrPwd': _this.usrPwd
                 }
             })
             .then(function (response) {
                 console.log(response);
-                if(response.data){
+                if(response.data.code=="0"){
                     _this.$message({
                         showClose: true,
                         message: '登陆成功',
                         type: 'success'
                     });
+        
+                    _this.$router.push('/');
                 }
                 else{
                     _this.$message({
                         showClose: true,
-                        message: '登陆失败',
+                        message: response.data.msg,
                         type: 'error'
                     });
                 }
                 
             })
-            .catch(function (error) {
-                if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-                } else if (error.request) {
-                // The request was made but no response was received
-                // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                // http.ClientRequest in node.js
-                console.log(error.request);
-                } else {
-                // Something happened in setting up the request that triggered an Error
-                console.log('Error', error.message);
-                }
-                console.log(error.config);
-                
+            .catch(error=>{
+                console.log(error);
                 _this.$message({
                     showClose: true,
                     message: '登陆失败',
